@@ -1,10 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro.Examples;
 using UnityEngine;
+using TMPro;
+using UnityEngine.SceneManagement;
+
+
 
 public class PlayerController : MonoBehaviour
 
 {
+
     [SerializeField] private Rigidbody2D rb;
 
     [SerializeField] private float speed;
@@ -12,10 +18,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpForce;
     [SerializeField] private float fallForce;
 
+    [SerializeField] private TextMeshProUGUI coinText;
+
+    public int coinValue = 1;
+    public int currentCoins;
+
+
+
+
     // Start is called before the first frame update
     void Start()
     {
-
+        currentCoins = 0;
+        coinText.text = currentCoins.ToString();
     }
 
     // Update is called once per frame
@@ -23,6 +38,8 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.D))
             transform.Translate(speed * Time.deltaTime, 0, 0);
+        if (Input.GetKey(KeyCode.A))
+            transform.Translate(speed * -Time.deltaTime, 0, 0);
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -35,16 +52,21 @@ public class PlayerController : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D other) 
     {
-        if (other.collider.CompareTag("coin"))
-            Destroy(other.collider.gameObject);
+        if (other.collider.CompareTag("coin")) 
         
-    }
+        {
+            Destroy(other.collider.gameObject);
+            currentCoins++;
+            coinText.text = currentCoins.ToString();
+            
+        }
 
+        if (other.collider.CompareTag("Door"))
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Enemy"))
-            Destroy(gameObject);
+        {
+            SceneManager.LoadScene("Level 2");
+        }
+
     }
 
 

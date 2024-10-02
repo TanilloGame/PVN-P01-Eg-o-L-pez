@@ -30,14 +30,17 @@ public class PlayerHealth : MonoBehaviour
         Destroy(gameObject);
         switch (health) 
         {
-            case 2: 
-                Destroy(playerLife1);
+            case 2:
+                playerLife1.gameObject.SetActive(false);
                 break;
             case 1:
-                Destroy(playerLife2);
+                playerLife1.gameObject.SetActive(false);
+                playerLife2.gameObject.SetActive(false);
                 break;
             case 0:
-                Destroy(playerLife3);
+                playerLife1.gameObject.SetActive(false);
+                playerLife3.gameObject.SetActive(false);
+                playerLife2.gameObject.SetActive(false);
                 break;
 
 

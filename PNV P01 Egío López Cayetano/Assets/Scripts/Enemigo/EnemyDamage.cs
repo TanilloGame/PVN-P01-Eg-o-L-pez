@@ -27,7 +27,7 @@ public class EnemyDamage : MonoBehaviour
     {
         if (other.gameObject.tag == "Player")
         {
-            playerHealth.TakeDamage(1);
+            playerHealth.TakeDamage(damage);
 
         
         

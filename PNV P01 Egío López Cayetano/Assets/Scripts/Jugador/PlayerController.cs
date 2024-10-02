@@ -4,13 +4,16 @@ using TMPro.Examples;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEditor.Tilemaps;
+
 
 
 
 public class PlayerController : MonoBehaviour
 
 {
-
+    [SerializeField] SpriteRenderer spriteRenderer;
+    [SerializeField] Animator animator;
     [SerializeField] private Rigidbody2D rb;
 
     [SerializeField] private float speed;
@@ -37,9 +40,30 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (Input.GetKey(KeyCode.D))
+        {
+
             transform.Translate(speed * Time.deltaTime, 0, 0);
-        if (Input.GetKey(KeyCode.A))
+            animator.SetBool("Walking", true);
+            spriteRenderer.flipX = false;
+        }
+        else if (Input.GetKey(KeyCode.A))
+        {
             transform.Translate(speed * -Time.deltaTime, 0, 0);
+            animator.SetBool("Walking", true);
+            spriteRenderer.flipX = true;
+
+
+
+
+        }
+
+        else 
+        { 
+            animator.SetBool("Walking",false);
+        
+        
+        }
+       
 
         if (Input.GetKeyDown(KeyCode.Space))
         {

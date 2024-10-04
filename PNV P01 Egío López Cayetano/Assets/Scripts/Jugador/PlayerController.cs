@@ -32,8 +32,10 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        currentCoins = PlayerPrefs.GetInt("coins");
         currentCoins = 0;
         coinText.text = currentCoins.ToString();
+
     }
 
     // Update is called once per frame
@@ -88,6 +90,7 @@ public class PlayerController : MonoBehaviour
         if (other.collider.CompareTag("Door"))
 
         {
+            PlayerPrefs.SetInt("coins", coinValue);
             SceneManager.LoadScene("Level 2");
         }
 

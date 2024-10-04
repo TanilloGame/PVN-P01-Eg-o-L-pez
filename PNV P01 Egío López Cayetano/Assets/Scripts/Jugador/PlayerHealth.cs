@@ -26,25 +26,12 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int amount) 
     { 
         health -= amount;
+        UIManager.HealthUI(health);
         if (health <= 0)
         Destroy(gameObject);
-        switch (health) 
-        {
-            case 2:
-                playerLife1.gameObject.SetActive(false);
-                break;
-            case 1:
-                playerLife1.gameObject.SetActive(false);
-                playerLife2.gameObject.SetActive(false);
-                break;
-            case 0:
-                playerLife1.gameObject.SetActive(false);
-                playerLife3.gameObject.SetActive(false);
-                playerLife2.gameObject.SetActive(false);
-                break;
+        
 
-
-        }
+        
         
 
 

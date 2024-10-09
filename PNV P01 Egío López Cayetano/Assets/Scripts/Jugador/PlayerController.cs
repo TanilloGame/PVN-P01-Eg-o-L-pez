@@ -5,6 +5,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEditor.Tilemaps;
+using UnityEngine.Rendering;
+using Unity.VisualScripting;
 
 
 
@@ -22,11 +24,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float fallForce;
 
     [SerializeField] private TextMeshProUGUI coinText;
-
+    [SerializeField] private float maxVelocityX;
+    [SerializeField] private float maxVelocityY;
     public int coinValue = 1;
     public int currentCoins;
 
+    [SerializeField] private Transform groundedRaycastLeftOrigin;
+    [SerializeField] private Transform groundedRaycastRightOrigin;
 
+    [SerializeField] private float maxAirtime = 0.1f;
+    [SerializeField] private float airTime;
+    [SerializeField] private bool falling = false;
+    [SerializeField] private bool jumping;
 
 
     // Start is called before the first frame update
@@ -35,12 +44,39 @@ public class PlayerController : MonoBehaviour
         currentCoins = PlayerPrefs.GetInt("coins");
         currentCoins = 0;
         coinText.text = currentCoins.ToString();
+        
 
     }
 
     // Update is called once per frame
     void Update()
     {
+        
+
+
+            if (IsGrounded() == false)
+            {
+                airTime += Time.deltaTime;
+
+
+
+            }
+            else
+            {
+                airTime = 0;
+
+            }
+
+
+
+
+
+        
+        
+        
+        
+
+
         if (Input.GetKey(KeyCode.D))
         {
 
@@ -66,15 +102,36 @@ public class PlayerController : MonoBehaviour
         
         }
        
+        //Salto
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && (IsGrounded() || (falling == true && airTime <= maxAirtime)))
         {
-            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            //rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            rb.velocity = Vector2.up * jumpForce;
+            jumping = true;
+
+            
         }
         if (rb.velocity.y < 0) 
         {
+            
            rb.AddForce(Vector2.down * fallForce);
+            rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -maxVelocityX, maxVelocityX), Mathf.Clamp(rb.velocity.y, -maxVelocityY, maxVelocityY));
+            falling = true;
+            if (IsGrounded())
+            {
+                jumping = false;
+            
+            }
         }
+        else
+        {
+            falling = false;
+        }
+
+
+
+
     }
     private void OnCollisionEnter2D(Collision2D other) 
     {
@@ -96,6 +153,52 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    private bool IsGrounded() 
+    {
+        bool result = false;
+
+        RaycastHit2D hit = Physics2D.Raycast(groundedRaycastLeftOrigin.position, Vector2.down, 1);
+        if (hit.collider != null)
+        {
+            result = true;
+            
+        }
+        if (!result) 
+        {
+            hit = Physics2D.Raycast(groundedRaycastRightOrigin.position, Vector2.down, 1);
+            if (hit.collider != null)
+            {
+                result = true;
+                
+
+            }
+
+
+        }
+
+        return result; 
+    
+    }
+
+    private bool CanJump() 
+    {
+        bool result = false;
+
+        if (IsGrounded() == true)
+        {
+            result = true;
+        }
+        else 
+        {
+            result = falling && (airTime <= maxAirtime);
+        
+        
+        
+        }
+
+        return result;
+    
+    }
 
 
 

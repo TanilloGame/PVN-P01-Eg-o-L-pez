@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor.Tilemaps;
 using UnityEngine.Rendering;
 using Unity.VisualScripting;
-
+using UnityEditor;
 
 
 
@@ -32,10 +32,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform groundedRaycastLeftOrigin;
     [SerializeField] private Transform groundedRaycastRightOrigin;
 
-    [SerializeField] private float maxAirtime = 0.1f;
-    [SerializeField] private float airTime;
+    
     [SerializeField] private bool falling = false;
-    [SerializeField] private bool jumping;
+    
 
 
     // Start is called before the first frame update
@@ -44,37 +43,26 @@ public class PlayerController : MonoBehaviour
         currentCoins = PlayerPrefs.GetInt("coins");
         currentCoins = 0;
         coinText.text = currentCoins.ToString();
-        
+
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-
-
-            if (IsGrounded() == false)
-            {
-                airTime += Time.deltaTime;
 
 
 
-            }
-            else
-            {
-                airTime = 0;
-
-            }
+       
 
 
 
 
 
-        
-        
-        
-        
+
+
+
+
 
 
         if (Input.GetKey(KeyCode.D))
@@ -95,53 +83,55 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        else 
-        { 
-            animator.SetBool("Walking",false);
-        
-        
-        }
-       
-        //Salto
-
-        if (Input.GetKeyDown(KeyCode.Space) && (IsGrounded() || (falling == true && airTime <= maxAirtime)))
-        {
-            //rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-            rb.velocity = Vector2.up * jumpForce;
-            jumping = true;
-
-            
-        }
-        if (rb.velocity.y < 0) 
-        {
-            
-           rb.AddForce(Vector2.down * fallForce);
-            rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -maxVelocityX, maxVelocityX), Mathf.Clamp(rb.velocity.y, -maxVelocityY, maxVelocityY));
-            falling = true;
-            if (IsGrounded())
-            {
-                jumping = false;
-            
-            }
-        }
         else
         {
-            falling = false;
+            animator.SetBool("Walking", false);
+
+
         }
 
+        //Salto
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            //rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
+            rb.velocity = Vector2.up * jumpForce;
 
 
+            
+            if (rb.velocity.y < 0)
+            {
+
+                rb.AddForce(Vector2.down * fallForce);
+                rb.velocity = new Vector2(Mathf.Clamp(rb.velocity.x, -maxVelocityX, maxVelocityX), Mathf.Clamp(rb.velocity.y, -maxVelocityY, maxVelocityY));
+               
+            }
+            
+            
+
+
+
+
+        
+
+        }
+        
+        
 
     }
-    private void OnCollisionEnter2D(Collision2D other) 
+
+
+    private void OnCollisionEnter2D(Collision2D other)
+
     {
-        if (other.collider.CompareTag("coin")) 
-        
+        if (other.collider.CompareTag("coin"))
+
         {
             Destroy(other.collider.gameObject);
             currentCoins++;
             coinText.text = currentCoins.ToString();
-            
+
         }
 
         if (other.collider.CompareTag("Door"))
@@ -153,54 +143,9 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private bool IsGrounded() 
-    {
-        bool result = false;
-
-        RaycastHit2D hit = Physics2D.Raycast(groundedRaycastLeftOrigin.position, Vector2.down, 1);
-        if (hit.collider != null)
-        {
-            result = true;
-            
-        }
-        if (!result) 
-        {
-            hit = Physics2D.Raycast(groundedRaycastRightOrigin.position, Vector2.down, 1);
-            if (hit.collider != null)
-            {
-                result = true;
-                
-
-            }
-
-
-        }
-
-        return result; 
     
-    }
 
-    private bool CanJump() 
-    {
-        bool result = false;
-
-        if (IsGrounded() == true)
-        {
-            result = true;
-        }
-        else 
-        {
-            result = falling && (airTime <= maxAirtime);
-        
-        
-        
-        }
-
-        return result;
     
-    }
-
-
 
 }
 

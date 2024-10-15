@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     public float maxJumpTime = 0.35f;         // Duración máxima del salto mientras se mantiene presionado
     public float fallMultiplier = 2.5f;       // Aumenta la velocidad de caída
     public float lowJumpMultiplier = 2f;      // Aumenta la velocidad de caída cuando se suelta el botón de salto
-    public int maxJumps = 2;                  // Número máximo de saltos permitidos (doble salto)
+    public int maxJumps = 1;                  // Número máximo de saltos permitidos (doble salto)
 
     [Header("Ground Check")]
     public Transform groundCheck;             // Referencia al objeto para detectar el suelo

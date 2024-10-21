@@ -9,28 +9,29 @@ public class MeleeAttack : MonoBehaviour
     public int attackDamage = 25; // Daño que inflige el ataque
     public float knockbackForce = 10f; // Fuerza del empuje al golpear a un enemigo
 
-    private Animator animator;
+    
     public Transform attackPoint;
-    public ParticleSystem attackParticles;
+    
+    public ParticleSystem scratchAttack;
 
     void Start()
     {
-        animator = GetComponent<Animator>();
+        
     }
 
     void Update()
     {
         if (Input.GetMouseButtonDown(0)) // Botón izquierdo del ratón para atacar
         {
+            
             Attack();
         }
     }
 
     void Attack()
     {
-        // Reproduce la animación de ataque
-        animator.SetTrigger("Attack");
 
+        scratchAttack.Play();
         // Detecta los enemigos en el rango de ataque
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
@@ -43,10 +44,7 @@ public class MeleeAttack : MonoBehaviour
             // Aplica daño y empuje al enemigo
             enemy.GetComponent<Enemy>().TakeDamage(attackDamage, knockbackDirection);
         }
-        if (attackParticles != null)
-        {
-            attackParticles.Play(); // Reproducir el sistema de partículas
-        }
+        
     }
 
     // Visualización del rango de ataque en la vista de escena

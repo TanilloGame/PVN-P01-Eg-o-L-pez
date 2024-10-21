@@ -16,6 +16,8 @@ public class Enemy : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator; // Referencia al Animator del enemigo
     private bool isDead = false;
+    public ParticleSystem enemyHit;
+    public ParticleSystem attackParticles;
 
     void Start()
     {
@@ -42,6 +44,8 @@ public class Enemy : MonoBehaviour
         knockbackDirection = knockbackDir;
         isKnockedBack = true;
         knockbackTime = 0f;
+        enemyHit.Play();
+        attackParticles.Play();
 
         // Si el enemigo muere
         if (currentHealth <= 0)
@@ -83,6 +87,6 @@ public class Enemy : MonoBehaviour
         rb.isKinematic = true;
 
         // Destruir al enemigo después de un tiempo (esperando que la animación termine)
-        Destroy(gameObject, 1.5f); // Ajusta este tiempo para que coincida con la duración de la animación
+        Destroy(this.gameObject, 1.5f); // Ajusta este tiempo para que coincida con la duración de la animación
     }
 }

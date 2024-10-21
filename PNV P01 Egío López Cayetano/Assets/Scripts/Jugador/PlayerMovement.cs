@@ -8,18 +8,22 @@ public class Player : MonoBehaviour
     public float moveSpeed = 8f;
     public float jumpForce = 16f;
     public float dashSpeed = 15f;
-    public float wallSlideSpeed = 2f;
+    
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
     public float dashDuration = 0.2f;
     public float coyoteTime = 0.2f;
     public int extraJumps = 1;
+    public SpriteRenderer spriteRenderer;
+    private bool facingRight = true;
+    public Transform[] childObjects;
+    private bool isFacingRight = true;            // Controlar la dirección del personaje
 
     // Variables privadas
     private Rigidbody2D rb;
-    private bool isFacingRight = true;
+    
     private bool isGrounded;
-    private bool isWallSliding;
+    
     private bool isDashing;
     private bool canDoubleJump;
     private bool isJumping;
@@ -28,12 +32,15 @@ public class Player : MonoBehaviour
     private float lastGroundedTime;
 
     // Layers y Colliders
+   
     public LayerMask groundLayer;
-    public LayerMask wallLayer;
     public Transform groundCheck;
-    public Transform wallCheck;
     public float groundCheckRadius = 0.2f;
-    public float wallCheckDistance = 0.5f;
+
+    public ParticleSystem dashing;
+    public ParticleSystem jumpingParticle;
+    public ParticleSystem airTrailParticles;
+
 
     private Animator animator;
 
@@ -42,12 +49,13 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         jumpCount = extraJumps;
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update()
     {
         GroundCheck();
-        WallCheck();
+        
 
         if (isDashing)
         {
@@ -68,20 +76,18 @@ public class Player : MonoBehaviour
         rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
 
 
-        if (moveInput > 0)
+        if (moveInput > 0 && !facingRight)
         {
-            transform.localScale = new Vector3(1, 1, 1); // Mirando a la derecha
+            Flip();
         }
-        else if (moveInput < 0)
+        else if (moveInput < 0 && facingRight)
         {
-            transform.localScale = new Vector3(-1, 1, 1); // Mirando a la izquierda
+            Flip();
         }
 
 
-        if (isWallSliding)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
-        }
+
+        
     }
 
     void HandleJump()
@@ -94,11 +100,14 @@ public class Player : MonoBehaviour
             lastGroundedTime = Time.time;
         }
 
+
+
         // Salto principal
         if (Input.GetButtonDown("Jump") && (isGrounded || Time.time - lastGroundedTime <= coyoteTime))
         {
             Jump();
             isJumping = true;
+            jumpingParticle.Play();
         }
         // Doble salto
         else if (Input.GetButtonDown("Jump") && canDoubleJump && !isGrounded)
@@ -107,12 +116,7 @@ public class Player : MonoBehaviour
             canDoubleJump = false;
         }
 
-        // Wall Jump
-        if (isWallSliding && Input.GetButtonDown("Jump"))
-        {
-            rb.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * moveSpeed, jumpForce);
-            isWallSliding = false;
-        }
+        
 
         // Mejorar el control en el aire
         if (rb.velocity.y < 0)
@@ -123,6 +127,22 @@ public class Player : MonoBehaviour
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
         }
+
+        if (!isGrounded)
+        {
+            if (!airTrailParticles.isPlaying)
+            {
+                airTrailParticles.Play();  // Iniciar el rastro si está en el aire
+            }
+        }
+        else
+        {
+            if (airTrailParticles.isPlaying)
+            {
+                airTrailParticles.Stop();  // Detener el rastro cuando esté en el suelo
+            }
+        }
+
     }
 
     void HandleDash()
@@ -130,14 +150,22 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing)
         {
             StartCoroutine(Dash());
+            dashing.Play();
         }
     }
 
-    IEnumerator Dash()
+    private IEnumerator Dash()
     {
         isDashing = true;
-        rb.velocity = new Vector2(transform.localScale.x * dashSpeed, 0f);
-        yield return new WaitForSeconds(dashDuration);
+        float originalGravity = rb.gravityScale;  // Guardar la gravedad original
+        rb.gravityScale = 0f;  // Eliminar la gravedad durante el Dash
+
+        // Realizar el Dash en la dirección en la que mira el jugador
+        rb.velocity = new Vector2(facingRight ? dashSpeed : -dashSpeed, 0f);
+
+        yield return new WaitForSeconds(dashDuration); // Esperar la duración del Dash
+
+        rb.gravityScale = originalGravity; // Restaurar la gravedad
         isDashing = false;
     }
 
@@ -146,15 +174,34 @@ public class Player : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
     }
 
-    void WallCheck()
-    {
-        isWallSliding = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, wallLayer) && !isGrounded && rb.velocity.y < 0;
-    }
+
 
     void Jump()
     {
         rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        jumpingParticle.Play();
     }
 
-    
+    void Flip()
+    {
+        facingRight = !facingRight;  // Cambiar la dirección en la que está mirando
+
+        // Usar flipX en el SpriteRenderer para girar el sprite
+        spriteRenderer.flipX = !spriteRenderer.flipX;
+
+        // Girar los objetos hijos excepto las partículas (que usaremos rotación)
+        foreach (Transform child in childObjects)
+        {
+            if (child.GetComponent<ParticleSystem>() == null) // Si no es un sistema de partículas
+            {
+                child.localScale = new Vector3(-child.localScale.x, child.localScale.y, child.localScale.z);
+            }
+            else // Si es un sistema de partículas, aplicar rotación
+            {
+                var particleSystemRotation = child.localRotation.eulerAngles;
+                particleSystemRotation.y = facingRight ? 0 : 180;  // Rotar en Y 180 grados si está mirando a la izquierda
+                child.localRotation = Quaternion.Euler(particleSystemRotation);
+            }
+        }
+    }
 }

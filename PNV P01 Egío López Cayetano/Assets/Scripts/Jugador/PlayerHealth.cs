@@ -7,11 +7,13 @@ public class PlayerHealth : MonoBehaviour
     public int maxHealth = 5;            // Puntos de salud máximos
     private int currentHealth;           // Salud actual
 
-    public float invincibilityDuration = 1.5f;  // Duración de la invencibilidad
-    private bool isInvincible = false;          // Estado de invencibilidad
+    public float invulnerabilityDuration = 2f; // Duración de la invulnerabilidad tras recibir daño
+    private bool isInvulnerable = false;  // Estado de invulnerabilidad
     public float knockbackForce = 10f;          // Fuerza de empuje al recibir daño
     public Color damageColor = Color.red;       // Color al recibir daño
     public float colorChangeDuration = 0.2f;    // Duración del cambio de color
+    public float flashInterval = 0.1f;    // Intervalo entre flashes de parpadeo
+    private bool isKnockedback = false;
 
     public LayerMask enemyLayer;                // Capa "Enemy"
     public Animator animator;                   // Referencia al Animator para animaciones
@@ -47,7 +49,7 @@ public class PlayerHealth : MonoBehaviour
         if (((1 << collision.gameObject.layer) & enemyLayer) != 0)
         {
             
-            if (!isInvincible && !isDead)
+            if (!isInvulnerable && !isDead)
             {
                 Vector2 knockbackDirection = (transform.position - collision.transform.position).normalized;
                 TakeDamage(1, knockbackDirection);
@@ -58,19 +60,24 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage, Vector2 knockbackDirection)
     {
-        if (!isInvincible && !isDead) // Solo recibir daño si no es invulnerable ni está muerto
+        if (!isInvulnerable)
         {
             currentHealth -= damage;
-
             if (currentHealth <= 0)
             {
+                // Aquí podrías activar la animación de muerte o el evento de muerte
                 Die();
             }
             else
             {
-                StartCoroutine(Invincibility());
-                ApplyKnockback(knockbackDirection);
-                StartCoroutine(ChangeColorOnDamage());
+                // Aplicar empuje si no está siendo empujado
+                if (!isKnockedback)
+                {
+                    rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+                }
+
+                // Iniciar la invulnerabilidad con parpadeo
+                StartCoroutine(InvulnerabilityFlash());
             }
         }
     }
@@ -82,13 +89,7 @@ public class PlayerHealth : MonoBehaviour
         rb.AddForce(direction * knockbackForce, ForceMode2D.Impulse);
     }
 
-    // Lógica para la invulnerabilidad temporal
-    private IEnumerator Invincibility()
-    {
-        isInvincible = true;
-        yield return new WaitForSeconds(invincibilityDuration);
-        isInvincible = false;
-    }
+    
 
     // Cambia el color brevemente al recibir daño
     private IEnumerator ChangeColorOnDamage()
@@ -96,6 +97,24 @@ public class PlayerHealth : MonoBehaviour
         spriteRenderer.color = damageColor;  // Cambia al color de daño
         yield return new WaitForSeconds(colorChangeDuration);
         spriteRenderer.color = originalColor; // Vuelve al color original
+    }
+    private IEnumerator InvulnerabilityFlash()
+    {
+        isInvulnerable = true;
+        float invulnerabilityTimer = 0f;
+
+        // Parpadeo durante el tiempo de invulnerabilidad
+        while (invulnerabilityTimer < invulnerabilityDuration)
+        {
+            spriteRenderer.enabled = false; // Hacer invisible
+            yield return new WaitForSeconds(flashInterval); // Esperar un intervalo
+            spriteRenderer.enabled = true;  // Hacer visible
+            yield return new WaitForSeconds(flashInterval); // Esperar un intervalo
+
+            invulnerabilityTimer += flashInterval * 2; // Aumentar el tiempo acumulado
+        }
+
+        isInvulnerable = false;
     }
 
     // Lógica de muerte

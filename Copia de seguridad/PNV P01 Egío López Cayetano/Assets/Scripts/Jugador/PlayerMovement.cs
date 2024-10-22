@@ -8,7 +8,7 @@ public class Player : MonoBehaviour
     public float moveSpeed = 8f;
     public float jumpForce = 16f;
     public float dashSpeed = 15f;
-   
+    
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
     public float dashDuration = 0.2f;
@@ -21,7 +21,9 @@ public class Player : MonoBehaviour
 
     
     private Rigidbody2D rb;
+    
     private bool isGrounded;
+    
     private bool isDashing;
     private bool canDoubleJump;
     private bool isJumping;
@@ -34,6 +36,7 @@ public class Player : MonoBehaviour
     public LayerMask groundLayer;
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
+
     public ParticleSystem dashing;
     public ParticleSystem jumpingParticle;
     public ParticleSystem airTrailParticles;
@@ -99,7 +102,7 @@ public class Player : MonoBehaviour
 
 
 
-       
+        
         if (Input.GetButtonDown("Jump") && (isGrounded || Time.time - lastGroundedTime <= coyoteTime))
         {
             Jump();
@@ -115,7 +118,6 @@ public class Player : MonoBehaviour
 
         
 
-        
         if (rb.velocity.y < 0)
         {
             rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
@@ -137,6 +139,7 @@ public class Player : MonoBehaviour
             if (airTrailParticles.isPlaying)
             {
                 airTrailParticles.Stop();  
+            }
         }
 
     }
@@ -161,7 +164,7 @@ public class Player : MonoBehaviour
 
         yield return new WaitForSeconds(dashDuration); 
 
-        rb.gravityScale = originalGravity;
+        rb.gravityScale = originalGravity; 
         isDashing = false;
     }
 
